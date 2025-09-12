@@ -39,6 +39,8 @@ model Buyer {
 
   owner     User           @relation(fields: [ownerId], references: [id])
   histories BuyerHistory[]
+
+  @@map("buyers")
 }
 
 model BuyerHistory {
@@ -50,6 +52,8 @@ model BuyerHistory {
 
   buyer Buyer @relation(fields: [buyerId], references: [id])
   user  User  @relation("UserChanges", fields: [changedBy], references: [id])
+
+  @@map("buyer_history")
 }
 
 enum City {

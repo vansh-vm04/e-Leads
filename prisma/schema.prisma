@@ -12,7 +12,7 @@ model User {
   id      String         @id @default(uuid())
   name    String
   email   String         @unique
-  role    Role
+  role    Role           @default(User)
   buyers  Buyer[]
   history BuyerHistory[] @relation("UserChanges")
 }

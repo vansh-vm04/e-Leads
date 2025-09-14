@@ -1,0 +1,37 @@
+import { z } from "zod";
+import {
+  BHKEnum,
+  CityEnum,
+  PropertyTypeEnum,
+  PurposeEnum,
+  SourceEnum,
+  StatusEnum,
+  TimeLineEnum,
+} from "./enums";
+
+export const BuyerSchema = z.object({
+  fullName: z.string().min(2).max(80),
+  email: z.email().optional(),
+  phone: z.string().min(10).max(15),
+  city: CityEnum,
+  propertyType: PropertyTypeEnum,
+  bhk: BHKEnum.optional(),
+  purpose: PurposeEnum,
+  budgetMin: z.number().int().nonnegative().optional(),
+  budgetMax: z.number().int().nonnegative().optional(),
+  timeline: TimeLineEnum,
+  source: SourceEnum,
+  status: StatusEnum.default("New"),
+  notes: z.string().max(1000).optional(),
+  tags: z.array(z.string()).optional(),
+  ownerId: z.uuid(),
+});
+
+export const BuyerHistorySchema = z.object({
+  buyerId: z.uuid(),
+  changedBy: z.uuid(),
+  diff: z.record(z.string(),z.any()),
+});
+
+export type BuyerType = z.infer<typeof BuyerSchema>;
+export type BuyerHistoryType = z.infer<typeof BuyerHistorySchema>;

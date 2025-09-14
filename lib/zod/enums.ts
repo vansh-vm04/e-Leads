@@ -22,7 +22,13 @@ export const PurposeEnum = z.enum(["Buy", "Rent"]);
 
 export const TimeLineEnum = z.enum(["M0_3", "M3_6", "GT6", "Exploring"]);
 
-export const SourceEnum = z.enum(["Website", "Referral", "Walk_in", "Other"]);
+export const SourceEnum = z.enum([
+  "Website",
+  "Referral",
+  "Walk_in",
+  "Call",
+  "Other",
+]);
 
 export const StatusEnum = z.enum([
   "New",

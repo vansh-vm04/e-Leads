@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const pageSize = 10;
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
 
     const city = searchParams.get("city") || undefined;
     const propertyType = searchParams.get("propertyType") || undefined;

@@ -17,10 +17,20 @@ export async function PUT(
   }
   const userId = session.user.id;
   try {
-    const parsed = BuyerSchema.safeParse(data);
+    data["ownerId"] = userId;
+    const validData:{[key:string]:unknown} = {};
+    for(const key in data){
+      if(data[key] != null && data[key] != ''){
+        validData[key] = data[key];
+      }
+    }
+    console.log(validData)
+    console.log(updatedAt)
+    const parsed = BuyerSchema.safeParse(validData);
     if (!parsed.success) {
+      console.log(parsed.error.issues)
       return NextResponse.json(
-        { errors: parsed.error.issues },
+        { message: parsed.error.issues[0].message },
         { status: 400 }
       );
     }
@@ -33,11 +43,11 @@ export async function PUT(
       where: { id },
     });
     if (!existing) {
-      return NextResponse.json({error: "Buyer not found" }, {status: 404} );
+      return NextResponse.json({message: "Buyer not found" }, {status: 404} );
     }
 
     if (existing.ownerId !== userId) {
-      return NextResponse.json({ error: "Forbidden" },{status: 403});
+      return NextResponse.json({ message: "Forbidden" },{status: 403});
     }
 
     const previousTime = new Date(existing.updatedAt);
@@ -114,5 +124,16 @@ export async function DELETE(
   } catch (error) {
     console.log(error);
     return NextResponse.json({ message: "Unable to delete" }, { status: 500 });
+  }
+}
+
+export async function GET(req:NextRequest, {params}:{params:{id:string}}){
+  const id = await params.id;
+  try {
+    const data = await prisma.buyer.findUnique({where:{id}});
+    return NextResponse.json({data},{status:200})
+  } catch (error) {
+    console.log(error)
+    return NextResponse.json({status:500})
   }
 }

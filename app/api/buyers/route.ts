@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
+import { TimeLineMap } from "@/lib/map";
 import { type BuyerType, BuyerSchema } from "@/lib/zod/schema";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -72,29 +73,51 @@ export async function POST(req: NextRequest) {
     }
     const userId = session.user.id;
     const { data } = await req.json();
+
     data["ownerId"] = userId;
-    const parsed = BuyerSchema.safeParse(data);
+    const validData: { [key: string]: unknown } = {};
+    for (const key in data) {
+      if (data[key] != null && data[key] != "") {
+        validData[key] = data[key];
+      }
+    }
+    console.log(validData);
+    const parsed = BuyerSchema.safeParse(validData);
 
     if (!parsed.success) {
-      return NextResponse.json({ status: 400, errors: parsed.error.issues });
+      console.log(parsed.error.issues);
+      return NextResponse.json(
+        { status: 400, message: parsed.error.issues[0].message },
+        { status: 400 }
+      );
     }
 
     const buyerData: BuyerType = parsed.data;
 
     if (buyerData.budgetMin && buyerData.budgetMax) {
       if (buyerData.budgetMax <= buyerData.budgetMin) {
-        return NextResponse.json({
-          status: 400,
-          message: "Max budget should be greater than min budget",
-        });
+        return NextResponse.json(
+          {
+            status: 400,
+            message: "Max budget should be greater than min budget",
+          },
+          { status: 400 }
+        );
       }
     }
 
-    if (buyerData?.propertyType === "Apartment" && !buyerData?.bhk) {
-      return NextResponse.json({
-        status: 400,
-        error: "BHK is required for Apartment",
-      });
+    if (
+      (buyerData?.propertyType === "Apartment" ||
+        buyerData?.propertyType === "Villa") &&
+      !buyerData?.bhk
+    ) {
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "BHK is required for Apartment or villa",
+        },
+        { status: 400 }
+      );
     }
 
     const buyer = await prisma.buyer.create({
@@ -111,9 +134,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ status: 200, buyer });
+    return NextResponse.json({ status: 200 }, { status: 200 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ status: 500, error: "Server error" });
+    return NextResponse.json(
+      { status: 500, error: "Server error" },
+      { status: 500 }
+    );
   }
 }

@@ -13,6 +13,9 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
+      ".prisma/**",
+      "prisma/generated/**",
+      "app/generated/prisma/**",
       "node_modules/**",
       ".next/**",
       "out/**",

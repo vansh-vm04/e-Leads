@@ -40,6 +40,15 @@ interface CSVRow {
   status: string;
 }
 
+function toIntOrNull(val: unknown): number | null {
+  if(typeof val == 'number') return val;
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim().replace(/^"|"$/g, "");
+  if (str === "") return null;
+  const num = Number(str);
+  return Number.isFinite(num) ? Math.floor(num) : null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -49,20 +58,21 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json({ message: "No file uploaded" }, { status: 400 });
     }
-    const text = await file.text();
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    const text = (await file.text()).replace(/'/g, "");
+    const parsed = Papa.parse(text, { header: true, dynamicTyping:true, skipEmptyLines: true });
     if (parsed.errors.length > 0) {
-      return NextResponse.json({ errors: parsed.errors }, { status: 400 });
+      return NextResponse.json({ message: parsed.errors }, { status: 400 });
     }
     const rows = parsed.data as CSVRow[];
     if (rows.length > 200) {
       return NextResponse.json(
-        { error: "Max 200 rows allowed" },
+        { message: "Max 200 rows allowed" },
         { status: 400 }
       );
     }
+
     const errors: { row: number; message: string }[] = [];
     const validRows: BuyerType[] = [];
 
@@ -71,14 +81,15 @@ export async function POST(req: NextRequest) {
       row.propertyType = PropertyTypeMap[row.propertyType] || row.propertyType;
       row.bhk = row.bhk ? BHKMap[row.bhk] : undefined;
       row.purpose = PurposeMap[row.purpose] || row.purpose;
-      row.timeline = TimeLineMap[row.timeline] || row.timeline;
-      row.source = SourceMap[row.source] || row.source;
+      row.timeline = TimeLineMap[row.timeline];
+      row.source = SourceMap[row.source];
       row.status = StatusMap[row.status] || row.status;
+      row.phone = String(row.phone) || row.phone;
 
       const processed: unknown = {
         ...row,
-        budgetMin: row.budgetMin ? Number(row.budgetMin) : undefined,
-        budgetMax: row.budgetMax ? Number(row.budgetMax) : undefined,
+        budgetMin: toIntOrNull(row.budgetMin),
+        budgetMax: toIntOrNull(row.budgetMax),
         tags: row.tags ? row.tags.split(",").map((t) => t.trim()) : undefined,
         city: row.city as keyof typeof CityEnum.enum,
         propertyType: row.propertyType as keyof typeof PropertyTypeEnum.enum,
@@ -90,6 +101,7 @@ export async function POST(req: NextRequest) {
           ? (row.status as keyof typeof StatusEnum.enum)
           : undefined,
       };
+      console.log(processed.budgetMin)
       const currentUserId = session.user?.id;
       const parsed = BuyerSchema.safeParse({
         ...(processed as CSVRow),
@@ -99,16 +111,18 @@ export async function POST(req: NextRequest) {
       if (!parsed.success) {
         errors.push({
           row: idx + 2,
-          message: parsed.error.issues.map((e) => e.message).join(", "),
+          message: parsed.error.issues.map((e) => e.path).join(", "),
         });
       } else {
         validRows.push(parsed.data);
       }
     });
 
-    if (errors.length > 0)
+    if (errors.length > 0){
+      console.log(errors)
       return NextResponse.json({ errors }, { status: 400 });
-
+    }
+    
     await prisma.buyer.createMany({ data: validRows, skipDuplicates: true });
     return NextResponse.json(
       { success: true, inserted: validRows.length },

@@ -16,6 +16,13 @@ export const SourceExportMap: Record<Source, string> = {
   Other: "Other",
 };
 
+export const TimeLineOptions = {
+  M0_3: "Less than 3 months",
+  M3_6: "3 to 6 months",
+  GT6: "More than 6 months",
+  Exploring: "Exploring",
+};
+
 export const TimeLineExportMap: Record<TimeLine, string> = {
   M0_3: "0-3m",
   M3_6: "3-6m",
@@ -55,14 +62,14 @@ export const PurposeMap: Record<string, Purpose> = {
 export const TimeLineMap: Record<string, TimeLine> = {
   "0-3m": "M0_3",
   "3-6m": "M3_6",
-  ">6m": "GT6",
-  Exploring: "Exploring",
+  "6+m": "GT6",
+  "Exploring": "Exploring",
 };
 
 export const SourceMap: Record<string, Source> = {
   Website: "Website",
   Referral: "Referral",
-  Walk_in: "Walk_in",
+  "Walk-in": "Walk_in",
   Call: "Call",
   Other: "Other",
 };

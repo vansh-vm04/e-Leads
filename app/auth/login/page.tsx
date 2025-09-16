@@ -15,6 +15,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
+      if (!session.user?.name) {
+        router.push("/profile");
+        return;
+      }
       router.push("/buyers");
     }
   }, [status, router]);
@@ -27,7 +31,7 @@ export default function LoginPage() {
     try {
       const res = await signIn("email", {
         email,
-        callbackUrl: session?.user?.name ? "/buyers" : "/profile",
+        callbackUrl: !session?.user?.name ? "/profile" : "/buyers",
       });
 
       if (res?.ok) {

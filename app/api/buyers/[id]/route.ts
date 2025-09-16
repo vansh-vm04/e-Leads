@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const { data, updatedAt } = await req.json();
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -96,9 +96,9 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -127,8 +127,8 @@ export async function DELETE(
   }
 }
 
-export async function GET(req:NextRequest, {params}:{params:{id:string}}){
-  const id = await params.id;
+export async function GET(req:NextRequest, {params}:{params:Promise<{id:string}>}){
+  const {id} = await params;
   try {
     const data = await prisma.buyer.findUnique({where:{id}});
     return NextResponse.json({data},{status:200})

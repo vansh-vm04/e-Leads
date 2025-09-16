@@ -101,7 +101,6 @@ export async function POST(req: NextRequest) {
           ? (row.status as keyof typeof StatusEnum.enum)
           : undefined,
       };
-      console.log(processed.budgetMin)
       const currentUserId = session.user?.id;
       const parsed = BuyerSchema.safeParse({
         ...(processed as CSVRow),

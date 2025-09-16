@@ -72,6 +72,7 @@ export default function BuyerEditPage() {
       const { data } = await res.json();
       setUpdatedAt(new Date(data.updatedAt).getTime());
       const transformedData = transformBuyerResponse(data);
+      //@ts-ignore
       reset(transformedData);
     } catch (err) {
       toast.error("Error fetching buyer details");

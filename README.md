@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Buyer Lead Intake App
 
-## Getting Started
+This project is a Buyer Lead Intake web application built with **Next.js**, **React Hook Form**, **Zod**, and **Prisma**.
 
-First, run the development server:
+It allows users to submit buyer leads with validation, rate limiting, and error boundaries. The app is designed for server-side rendering (SSR) where possible and enforces ownership rules for updates.
 
+---
+
+## 🚀 Setup
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/buyer-lead-intake.git
+cd buyer-lead-intake
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Environment variables
+Create a `.env` file at the root with:
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/db_name"
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3000"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Database migration & seed
+```bash
+npx prisma migrate dev --name init
+npx prisma db seed
+```
 
-## Learn More
+### 5. Run locally
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+App will be available at `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛠️ Design Notes
 
-## Deploy on Vercel
+### Validation
+- All form fields are validated using **Zod** + **React Hook Form**.  
+- Server-side validation is added in the API layer to ensure data consistency.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### SSR vs Client
+- The app uses **SSR** for rendering initial pages.  
+- Form interactions and validation happen on the **client side**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Ownership Enforcement
+- Users can only update or delete the leads they created.  
+- Auth middleware checks for user ID on sensitive actions.
+
+### Error Boundary + Empty State
+- Error boundary component wraps pages to catch rendering errors.  
+- Empty state components handle cases when no leads are available.
+
+---
+
+## ✅ Features Done
+-  Form with Zod + React Hook Form validation  
+-  CSV Upload + Validator  
+-  Budget check with Zod schema  
+-  Rate limiting for create/update actions  
+-  Error boundary + Empty state handling  
+-  Unit test for CSV validator  
+
+## ⏭️ Skipped (and why)
+- Admin feature, due to time constraints.
+---
+
+## 🧪 Tests
+
+Run unit tests:
+```bash
+npm run test
+```
+
+Tests include:
+- CSV validator  
+- Budget validation  
+- Error boundary handling  
+
+---

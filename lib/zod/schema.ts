@@ -36,7 +36,7 @@ export const BuyerSchema = z
       ctx.addIssue({
         code: "custom",
         path: ["budgetMax"],
-        message: "budgetMax must be greater than or equal to budgetMin",
+        message: "Max budget must be greater than or equal to min budget",
       });
     }
 

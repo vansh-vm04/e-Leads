@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "authenticated") {
       if (session?.user?.name) {
         router.push("/buyers");

@@ -91,6 +91,7 @@ export default function BuyersPage() {
     }
   };
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "unauthenticated") {
       router.push("/auth/login");
     }

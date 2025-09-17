@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { TimeLineMap } from "@/lib/map";
+import { checkRateLimit } from "@/lib/rateLimiter";
 import { type BuyerType, BuyerSchema } from "@/lib/zod/schema";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -66,6 +67,15 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { message: "Too many requests, please wait." },
+      { status: 429 }
+    );
+  }
+  
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

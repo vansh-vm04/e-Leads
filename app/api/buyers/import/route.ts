@@ -22,6 +22,7 @@ import {
 } from "@/lib/map";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rateLimiter";
 
 interface CSVRow {
   fullName: string;
@@ -50,6 +51,15 @@ function toIntOrNull(val: unknown): number | null {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+  
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        { message: "Too many requests, please wait." },
+        { status: 429 }
+      );
+    }
+    
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {

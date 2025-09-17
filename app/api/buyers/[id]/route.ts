@@ -1,6 +1,7 @@
 import { Prisma } from "@/app/generated/prisma";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/db";
+import { checkRateLimit } from "@/lib/rateLimiter";
 import { BuyerSchema, BuyerType } from "@/lib/zod/schema";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +10,14 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { message: "Too many requests, please wait." },
+      { status: 429 }
+    );
+  }
   const { id } = await params;
   const { data, updatedAt } = await req.json();
   const session = await getServerSession(authOptions);
@@ -18,17 +27,17 @@ export async function PUT(
   const userId = session.user.id;
   try {
     data["ownerId"] = userId;
-    const validData:{[key:string]:unknown} = {};
-    for(const key in data){
-      if(data[key] != null && data[key] != ''){
+    const validData: { [key: string]: unknown } = {};
+    for (const key in data) {
+      if (data[key] != null && data[key] != "") {
         validData[key] = data[key];
       }
     }
-    console.log(validData)
-    console.log(updatedAt)
+    console.log(validData);
+    console.log(updatedAt);
     const parsed = BuyerSchema.safeParse(validData);
     if (!parsed.success) {
-      console.log(parsed.error.issues)
+      console.log(parsed.error.issues);
       return NextResponse.json(
         { message: parsed.error.issues[0].message },
         { status: 400 }
@@ -43,11 +52,11 @@ export async function PUT(
       where: { id },
     });
     if (!existing) {
-      return NextResponse.json({message: "Buyer not found" }, {status: 404} );
+      return NextResponse.json({ message: "Buyer not found" }, { status: 404 });
     }
 
     if (existing.ownerId !== userId) {
-      return NextResponse.json({ message: "Forbidden" },{status: 403});
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const previousTime = new Date(existing.updatedAt);
@@ -87,15 +96,15 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ buyer: updated },{status: 200});
+    return NextResponse.json({ buyer: updated }, { status: 200 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ message: "Server error" },{status: 500});
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
 
 export async function DELETE(
-    req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -107,7 +116,7 @@ export async function DELETE(
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json({ message: "User not found" },{status: 404});
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     const buyer = await prisma.buyer.findUnique({ where: { id } });
@@ -118,7 +127,7 @@ export async function DELETE(
         { status: 401 }
       );
     }
-    await prisma.buyerHistory.deleteMany({where:{buyerId: id}});
+    await prisma.buyerHistory.deleteMany({ where: { buyerId: id } });
     await prisma.buyer.delete({ where: { id } });
     return NextResponse.json({ message: "Buyer deleted" }, { status: 200 });
   } catch (error) {
@@ -127,13 +136,16 @@ export async function DELETE(
   }
 }
 
-export async function GET(req:NextRequest, {params}:{params:Promise<{id:string}>}){
-  const {id} = await params;
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
   try {
-    const data = await prisma.buyer.findUnique({where:{id}});
-    return NextResponse.json({data},{status:200})
+    const data = await prisma.buyer.findUnique({ where: { id } });
+    return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
-    console.log(error)
-    return NextResponse.json({status:500})
+    console.log(error);
+    return NextResponse.json({ status: 500 });
   }
 }

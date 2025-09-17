@@ -9,6 +9,7 @@ export default function Home() {
   const { status } = useSession();
   const router = useRouter();
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "unauthenticated") {
       router.push("/auth/login");
     } else {

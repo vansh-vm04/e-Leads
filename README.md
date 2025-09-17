@@ -4,6 +4,8 @@ This project is a Buyer Lead Intake web application built with **Next.js**, **Re
 
 It allows users to submit buyer leads with validation, rate limiting, and error boundaries. The app is designed for server-side rendering (SSR) where possible and enforces ownership rules for updates.
 
+<img style="width:800px;" src="./public/buyers-page.png"/>
+
 ---
 
 ## 🚀 Setup

@@ -26,6 +26,7 @@ import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import PageLoader from "@/components/PageLoader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 interface Buyer {
   id: string;
@@ -251,6 +252,7 @@ export default function BuyersPage() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="p-6 h-screen space-y-6">
       <div className="w-full h-fit flex items-center justify-between px-6">
         <Logo />
@@ -362,7 +364,7 @@ export default function BuyersPage() {
             <Loader2 className="animate-spin mr-2 h-5 w-5" />
             Loading...
           </div>
-        ) : (
+        ) : buyers.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -428,6 +430,11 @@ export default function BuyersPage() {
               ))}
             </TableBody>
           </Table>
+        ) : (
+          <div className="text-center p-6 text-gray-500">
+            <p>No buyers found.</p>
+            <p className="mt-2">Try adjusting filters or create a new lead.</p>
+          </div>
         )}
       </div>
 
@@ -454,5 +461,6 @@ export default function BuyersPage() {
         </Button>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
